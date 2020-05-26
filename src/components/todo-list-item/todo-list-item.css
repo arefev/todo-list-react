@@ -1,0 +1,17 @@
+.todo-list-item button {
+    width: 35px;
+}
+
+.todo-list-item.important {
+    font-weight: bold;
+    color: #01adff;
+}
+
+.todo-list-item.done {
+    text-decoration: line-through;
+}
+
+.todo-list-item-label {
+    cursor: pointer;
+    user-select: none;
+}
