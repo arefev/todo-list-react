@@ -1,39 +1,70 @@
 import React, {Component} from 'react';
+
 import Header from "../header";
 import Search from "../search";
 import ItemStatusFilter from "../item-status-filter";
 import TodoList from "../todo-list";
 import AddItemForm from "../add-item-form";
 
+import ApiService from "../../services/api-service";
+
 import './app.css';
 
 export default class App extends Component {
 
-    maxId = 1;
+    apiService = new ApiService();
 
     state = {
-        items: [
-            this.createItem('Wake up at 08:00'),
-            this.createItem('Have a breakfast'),
-            this.createItem('Learn JavaScript')
-        ],
+        items: [],
         term: '',
         filter: 'all'
     };
+    
+    componentDidMount() {
+        this.loadItems();
+    }
+
+    loadItems() {
+        this.apiService
+            .getItems()
+            .then(this.onItemsLoaded)
+            .catch(this.onError);
+    }
+
+    onItemsLoaded = (items) => {
+        this.setState(() => {
+            return {
+                items: items
+            }
+        })
+    };
+
+    onError = (error) => {
+        console.log(error);
+    };
 
     deleteItem = (id) => {
-        this.setState(({items}) => {
-            return {
-                items: items.filter((item) => item.id !== id)
-            };
-        });
+        this.apiService
+            .deleteItem(id)
+            .then(() => {
+                this.loadItems();
+            })
+            .catch(this.onError);
     };
 
     toggleImportant = (id) => {
+        this.apiService
+            .important(id)
+            .catch(this.onError);
+
         this.toggleProp(id, 'important');
     };
 
     toggleDone = (id) => {
+        this.apiService
+            .done(id)
+            .catch(this.onError);
+
         this.toggleProp(id, 'done');
     };
 
@@ -82,30 +113,15 @@ export default class App extends Component {
     };
 
     addItem = (label) => {
-        this.setState(({items}) => {
-            const newItems = [
-                ...items,
-                this.createItem(label)
-            ];
-
-            return {
-                items: newItems
-            }
-        });
+        this.apiService
+            .saveItem(label)
+            .then(() => {
+                this.loadItems();
+            })
+            .catch(this.onError);
     };
-
-    createItem(label) {
-        return {
-            label,
-            important: false,
-            done: false,
-            id: this.maxId++
-        }
-    };
-
 
     render() {
-
         const {items, term, filter} = this.state;
         const visibleItems = this.filter(
             this.search(items, term),
